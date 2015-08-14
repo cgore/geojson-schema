@@ -13,7 +13,7 @@
 ;  limitations under the License.
 (ns com.climate.geojson-schema.core
   (:require
-    [schema.core :refer [Any optional-key required-key eq one pred both either maybe]]))
+    [schema.core :refer [Any optional-key required-key eq one pred both maybe named conditional]]))
 
 ;;TBD, there's a requirement that a CRS not be overridden on a sub object per the spec.
 ;; Not sure how to implement that yet.
@@ -101,12 +101,13 @@
           :type (eq "MultiPolygon")}))
 
 (def Geometry
-  (either Point
-          MultiPoint
-          LineString
-          MultiLineString
-          Polygon
-          MultiPolygon))
+  (named (conditional #(= "Point"           (:type %)) Point
+                      #(= "MultiPoint"      (:type %)) MultiPoint
+                      #(= "LineString"      (:type %)) LineString
+                      #(= "MultiLineString" (:type %)) MultiLineString
+                      #(= "Polygon"         (:type %)) Polygon
+                      #(= "MultiPolygon"    (:type %)) MultiPolygon)
+         "not a valid Geometry object"))
 
 (def GeometryCollection
   (merge geojson-base
@@ -125,7 +126,9 @@
          {:features [Feature]
           :type (eq "FeatureCollection")}))
 
-(def GeoJSON (either Geometry
-                     GeometryCollection
-                     Feature
-                     FeatureCollection))
+(def GeoJSON
+  (named (conditional #(contains? #{"Point" "MultiPoint" "LineString" "MultiLineString" "Polygon" "MultiPolygon"} (:type %)) Geometry
+                      #(= "GeometryCollection" (:type %)) GeometryCollection
+                      #(= "Feature"            (:type %)) Feature
+                      #(= "FeatureCollection"  (:type %)) FeatureCollection)
+         "not a valid GeoJSON object"))
