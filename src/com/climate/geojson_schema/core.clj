@@ -217,7 +217,7 @@
   "This is any valid GeoJSON object.
 
   Cf. <http://geojson.org/geojson-spec.html>."
-  (named (conditional #(contains? #{"Point" "MultiPoint" "LineString" "MultiLineString" "Polygon" "MultiPolygon"} (:type %)) Geometry
+  (named (conditional #(#{"Point" "MultiPoint" "LineString" "MultiLineString" "Polygon" "MultiPolygon"} (:type %)) Geometry
                       #(= "GeometryCollection" (:type %)) GeometryCollection
                       #(= "Feature"            (:type %)) Feature
                       #(= "FeatureCollection"  (:type %)) FeatureCollection)
